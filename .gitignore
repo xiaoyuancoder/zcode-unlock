@@ -1,0 +1,5 @@
+.git/
+*.log
+*.bak
+*.tmp
+node_modules/
