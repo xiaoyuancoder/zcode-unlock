@@ -10,16 +10,35 @@ ZCode 客户端破甲：把引擎内置的「安全/道德边界」身份段替�
 
 前置：Windows + 官方 ZCode 已安装 + Node.js 在 PATH 里。
 
-```powershell
-# 1. clone 本私有仓库（需已登录有权限的 GitHub 账号）
-git clone https://github.com/<你的账号>/zcode-unlock.git
-cd zcode-unlock
+### 方式一：一键下载（推荐，无需 git/登录）
 
-# 2. 一键安装（注入引擎 + 部署 C:\zcode-unlock + 装守护自愈）
+管理员 PowerShell：
+
+```powershell
+cd $env:TEMP
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xiaoyuancoder/zcode-unlock/main/unlock.ps1" -OutFile unlock.ps1
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xiaoyuancoder/zcode-unlock/main/run.cmd" -OutFile run.cmd
+# 直连失败时加代理： -Proxy "http://127.0.0.1:7897"
+.\run.cmd apply
+```
+
+`run.cmd apply` 会自动把 tools/ 从仓库下载到 C:\zcode-unlock 再注入。
+或直接下整个包：
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/xiaoyuancoder/zcode-unlock/archive/refs/heads/main.zip" -OutFile zu.zip
+Expand-Archive zu.zip -DestinationPath .
+cd zcode-unlock-main
 powershell -ExecutionPolicy Bypass -File .\unlock.ps1 apply
 ```
 
-或双击 `run.cmd`（默认 status；要安装就先编辑传参 `apply`）。
+### 方式二：git clone
+
+```powershell
+git clone https://github.com/xiaoyuancoder/zcode-unlock.git
+cd zcode-unlock
+powershell -ExecutionPolicy Bypass -File .\unlock.ps1 apply
+```
 
 装完**完全退出 ZCode（托盘也要退）再重启**生效。
 

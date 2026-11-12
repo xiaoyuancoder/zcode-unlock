@@ -44,7 +44,31 @@ switch ($Action) {
   'apply' {
     Write-Host "== deploying tools to $DeployDir =="
     New-Item -ItemType Directory -Force -Path $DeployDir | Out-Null
-    Copy-Item (Join-Path $srcTools '*') $DeployDir -Force
+
+    # 本地 tools/ 存在（zip 包 / clone 场景）直接拷贝；
+    # 只有单个脚本（raw 下载场景）则从 GitHub 拉取 tools/。
+    if (Test-Path (Join-Path $srcTools 'prompt-injector.cjs')) {
+      Copy-Item (Join-Path $srcTools '*') $DeployDir -Force
+    } else {
+      Write-Host '  local tools/ not found; downloading from GitHub...'
+      $base = 'https://raw.githubusercontent.com/xiaoyuancoder/zcode-unlock/main/tools'
+      foreach ($f in 'prompt-injector.cjs','system-prompt.md','watchdog.cjs','run-hidden.vbs','install-task.cjs','install-autostart.cjs','README.md') {
+        $dst = Join-Path $DeployDir $f
+        try {
+          Invoke-WebRequest -Uri "$base/$f" -OutFile $dst -UseBasicParsing
+        } catch {
+          # 代理兜底：常见本地代理端口依次尝试
+          $ok = $false
+          foreach ($port in 7897, 7890, 10809, 1080) {
+            try {
+              Invoke-WebRequest -Uri "$base/$f" -OutFile $dst -UseBasicParsing -Proxy "http://127.0.0.1:$port"
+              $ok = $true; break
+            } catch {}
+          }
+          if (-not $ok) { Write-Host "[X] download failed: $f (check network/proxy)" -ForegroundColor Red; exit 1 }
+        }
+      }
+    }
 
     Write-Host "== injecting engine patch =="
     & node.exe $injector apply
